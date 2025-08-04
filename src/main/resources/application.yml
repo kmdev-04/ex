@@ -8,9 +8,47 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+            scope: profile, email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 logging:
+  file:
+    name: C:/dev/logs/app.log
   level:
-    pattern:
-      console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - userId=%X{userId} email=%X{email} - %msg%n"
     root: info
     com.ex.prac: debug
+    io.sentry: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - userId=%X{userId} email=%X{email} - %msg%n"
+
+jwt:
+  secret: "my-super-secret-key-that-is-at-least-256-bits-long"
+  access:
+    expiration: 600000  # 10?
+  refresh:
+    expiration: 604800000  # 7?
+
+## ???
+#server:
+#  ssl:
+#    enabled: true
+#    key-store: classpath:keystore.p12
+#    key-store-password: yourpassword
+#    key-store-type: PKCS12

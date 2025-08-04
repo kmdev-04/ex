@@ -31,6 +31,13 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
+    @ExceptionHandler(JwtTokenException.class)
+    public ResponseEntity<?> handleJwtTokenException(JwtTokenException e) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+
+
+
     // 공통 응답 포맷
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(

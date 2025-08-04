@@ -4,6 +4,9 @@ import com.ex.prac.dto.UserDto;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -23,6 +26,10 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles;
 
     public UserDto toDto() {
         return UserDto.builder()
