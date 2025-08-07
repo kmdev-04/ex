@@ -6,6 +6,7 @@ pipeline {
     }
 
     environment {
+        PROJECT_NAME = "ex"
         JAR_FILE = "build/libs/*.jar"
         NGINX_CONF = "/etc/nginx/nginx.conf"
         GREEN_CONF = "nginx/nginx.green.conf"
