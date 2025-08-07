@@ -37,7 +37,6 @@ pipeline {
                         env.CONTAINER = "spring-blue"
                         env.CONF_TO_USE = BLUE_CONF
                     }
-                    echo "현재 서비스 중인 버전은 ${CURRENT}, 다음 배포는 ${NEXT}"
                 }
             }
         }
