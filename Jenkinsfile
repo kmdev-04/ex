@@ -29,7 +29,7 @@ pipeline {
         stage('Detect Active Version') {
             steps {
                 script {
-                    def currentConf = readFile(NGINX_CONF)
+                     def currentConf = sh(script: "docker exec nginx cat /etc/nginx/nginx.conf", returnStdout: true).trim()
                     if (currentConf.contains("spring-blue")) {
                         env.NEXT = "green"
                         env.PORT = "8082"
