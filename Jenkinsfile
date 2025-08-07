@@ -95,22 +95,29 @@ pipeline {
             }
         }
 
-        stage('Switch Nginx') {
-            steps {
-                script {
-                    // nginx 설정 변경 (컨테이너 재시작 방식)
-                    sh "cp ${env.CONF_TO_USE} ./nginx/nginx.conf"
+stage('Switch Nginx') {
+    steps {
+        script {
+            // 1. 설정 파일을 nginx 컨테이너에 직접 복사
+            sh "docker cp ${env.CONF_TO_USE} nginx:/tmp/nginx.conf.new"
 
-                    // nginx 컨테이너 재시작으로 새 설정 적용
-                    sh "docker restart nginx"
+            // 2. 설정 파일 검증
+            sh "docker exec nginx nginx -t -c /tmp/nginx.conf.new"
 
-                    // 잠깐 대기
-                    sh "sleep 5"
+            // 3. 검증 성공 시 실제 설정으로 이동
+            sh "docker exec nginx mv /tmp/nginx.conf.new /etc/nginx/nginx.conf"
 
-                    echo "Switched from ${env.CURRENT} to ${env.NEXT}"
-                }
-            }
+            // 4. nginx 리로드
+            sh "docker exec nginx nginx -s reload"
+
+            // 5. 확인
+            sh "sleep 3"
+            sh "docker exec nginx cat /etc/nginx/nginx.conf | grep 'server spring-'"
+
+            echo "Successfully switched from ${env.CURRENT} to ${env.NEXT}"
         }
+    }
+}
 
         stage('Cleanup Old Version') {
             steps {
