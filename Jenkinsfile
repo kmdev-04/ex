@@ -70,7 +70,7 @@ pipeline {
                     sh """
                         docker run -d --name ${env.NEXT_CONTAINER} \
                         -p ${env.NEXT_PORT}:8080 \
-                        --network blue-green_app \
+                        --network ex_app \
                         -e SPRING_PROFILES_ACTIVE=${env.NEXT} \
                         ${env.NEXT_CONTAINER}:latest
                     """
