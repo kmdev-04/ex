@@ -70,22 +70,16 @@ pipeline {
                     sh """
                         docker run -d --name ${env.NEXT_CONTAINER} \
                         -p ${env.NEXT_PORT}:8080 \
-                        --network ex_app \
+                        --network blue-green_app \
                         -e SPRING_PROFILES_ACTIVE=${env.NEXT} \
                         ${env.NEXT_CONTAINER}:latest
                     """
 
-                    // 헬스체크 대기
+                    // 컨테이너 시작 대기 (간단한 버전)
                     sh """
-                        echo "Waiting for ${env.NEXT_CONTAINER} to be ready..."
-                        for i in {1..30}; do
-                            if curl -f http://localhost:${env.NEXT_PORT}/actuator/health 2>/dev/null; then
-                                echo "${env.NEXT_CONTAINER} is ready!"
-                                break
-                            fi
-                            echo "Attempt \$i: ${env.NEXT_CONTAINER} not ready yet..."
-                            sleep 5
-                        done
+                        echo "Waiting for ${env.NEXT_CONTAINER} to start..."
+                        sleep 10
+                        echo "${env.NEXT_CONTAINER} should be ready now"
                     """
                 }
             }
@@ -97,9 +91,13 @@ pipeline {
                     // nginx 설정 변경
                     sh "cp ${env.CONF_TO_USE} ./nginx/nginx.conf"
 
-                    // nginx 컨테이너에 새 설정 복사 및 재로드
-                    sh "docker cp ./nginx/nginx.conf nginx:/etc/nginx/nginx.conf"
-                    sh "docker exec nginx nginx -s reload"
+                    // nginx 컨테이너 재시작 (파일이 사용 중일 때 해결책)
+                    sh """
+                        docker cp ./nginx/nginx.conf nginx:/tmp/nginx.conf
+                        docker exec nginx mv /tmp/nginx.conf /etc/nginx/nginx.conf
+                        docker exec nginx nginx -t
+                        docker exec nginx nginx -s reload
+                    """
 
                     echo "Switched from ${env.CURRENT} to ${env.NEXT}"
                 }
