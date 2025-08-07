@@ -70,7 +70,7 @@ pipeline {
                     sh """
                         docker run -d --name ${env.NEXT_CONTAINER} \
                         -p ${env.NEXT_PORT}:8080 \
-                        --network ex_app \
+                        --network blue-green_app \
                         -e SPRING_PROFILES_ACTIVE=${env.NEXT} \
                         ${env.NEXT_CONTAINER}:latest
                     """
@@ -88,16 +88,14 @@ pipeline {
         stage('Switch Nginx') {
             steps {
                 script {
-                    // nginx 설정 변경
+                    // nginx 설정 변경 (컨테이너 재시작 방식)
                     sh "cp ${env.CONF_TO_USE} ./nginx/nginx.conf"
 
-                    // nginx 컨테이너 재시작 (파일이 사용 중일 때 해결책)
-                    sh """
-                        docker cp ./nginx/nginx.conf nginx:/tmp/nginx.conf
-                        docker exec nginx mv /tmp/nginx.conf /etc/nginx/nginx.conf
-                        docker exec nginx nginx -t
-                        docker exec nginx nginx -s reload
-                    """
+                    // nginx 컨테이너 재시작으로 새 설정 적용
+                    sh "docker restart nginx"
+
+                    // 잠깐 대기
+                    sh "sleep 5"
 
                     echo "Switched from ${env.CURRENT} to ${env.NEXT}"
                 }
