@@ -95,34 +95,34 @@ pipeline {
             }
         }
 
-stage('Switch Nginx') {
-    steps {
-        script {
-            // 1. 새로운 파일명으로 복사
-            sh "docker cp ${env.CONF_TO_USE} nginx:/etc/nginx/nginx.conf.new"
+        stage('Switch Nginx') {
+            steps {
+                script {
+                    // 1. 새로운 파일명으로 복사
+                    sh "docker cp ${env.CONF_TO_USE} nginx:/etc/nginx/nginx.conf.new"
 
-            // 2. 설정 검증
-            sh "docker exec nginx nginx -t -c /etc/nginx/nginx.conf.new"
+                    // 2. 설정 검증
+                    sh "docker exec nginx nginx -t -c /etc/nginx/nginx.conf.new"
 
-            // 3. 원본 백업 및 새 파일로 교체
-            sh """
-                docker exec nginx bash -c '
-                    cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup &&
-                    cp /etc/nginx/nginx.conf.new /etc/nginx/nginx.conf
-                '
-            """
+                    // 3. 원본 백업 및 새 파일로 교체
+                    sh """
+                        docker exec nginx bash -c '
+                            cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup &&
+                            cp /etc/nginx/nginx.conf.new /etc/nginx/nginx.conf
+                        '
+                    """
 
-            // 4. nginx 리로드
-            sh "docker exec nginx nginx -s reload"
+                    // 4. nginx 리로드
+                    sh "docker exec nginx nginx -s reload"
 
-            // 5. 확인
-            sh "sleep 3"
-            sh "docker exec nginx cat /etc/nginx/nginx.conf | grep 'server spring-'"
+                    // 5. 확인
+                    sh "sleep 3"
+                    sh "docker exec nginx cat /etc/nginx/nginx.conf | grep 'server spring-'"
 
-            echo "Successfully switched from ${env.CURRENT} to ${env.NEXT}"
+                    echo "Successfully switched from ${env.CURRENT} to ${env.NEXT}"
+                }
+            }
         }
-    }
-}
 
         stage('Cleanup Old Version') {
             steps {
