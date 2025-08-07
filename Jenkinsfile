@@ -51,7 +51,11 @@ pipeline {
                     sh "docker stop ${CONTAINER} || true"
                     sh "docker rm ${CONTAINER} || true"
                     sh "docker build -t ${CONTAINER} ."
-                    sh "docker run -d --name ${CONTAINER} -p ${PORT}:8080 ${CONTAINER}"
+                    sh """
+                        docker run -d --name ${CONTAINER} \
+                        -p ${PORT}:8080 ${CONTAINER} \
+                        java -jar app.jar --spring.profiles.active=${NEXT}
+                    """
                 }
             }
         }
