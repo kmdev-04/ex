@@ -63,7 +63,7 @@ pipeline {
         stage('Switch Nginx') {
             steps {
                 script {
-                    sh "cp ${CONF_TO_USE} ${NGINX_CONF}"
+                    sh "cp ${CONF_TO_USE} ./nginx/nginx.conf"
                     sh "docker restart nginx"
                 }
             }
