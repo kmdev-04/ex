@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         JAR_FILE = "build/libs/*.jar"
         NGINX_CONF = "nginx/nginx.conf"
