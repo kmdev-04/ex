@@ -95,29 +95,31 @@ pipeline {
             }
         }
 
-stage('Switch Nginx') {
-    steps {
-        script {
-            // 1. 설정 파일을 nginx 컨테이너에 직접 복사
-            sh "docker cp ${env.CONF_TO_USE} nginx:/tmp/nginx.conf.new"
+            stage('Switch Nginx') {
+                steps {
+                    script {
+                        // 1. 설정 파일 내용을 nginx 컨테이너로 직접 전송
+                        sh """
+                            docker exec nginx bash -c 'cat > /etc/nginx/nginx.conf.tmp' < ${env.CONF_TO_USE}
+                        """
 
-            // 2. 설정 파일 검증
-            sh "docker exec nginx nginx -t -c /tmp/nginx.conf.new"
+                        // 2. 설정 검증
+                        sh "docker exec nginx nginx -t -c /etc/nginx/nginx.conf.tmp"
 
-            // 3. 검증 성공 시 실제 설정으로 이동
-            sh "docker exec nginx mv /tmp/nginx.conf.new /etc/nginx/nginx.conf"
+                        // 3. 파일 교체
+                        sh "docker exec nginx mv /etc/nginx/nginx.conf.tmp /etc/nginx/nginx.conf"
 
-            // 4. nginx 리로드
-            sh "docker exec nginx nginx -s reload"
+                        // 4. nginx 리로드
+                        sh "docker exec nginx nginx -s reload"
 
-            // 5. 확인
-            sh "sleep 3"
-            sh "docker exec nginx cat /etc/nginx/nginx.conf | grep 'server spring-'"
+                        // 5. 확인
+                        sh "sleep 3"
+                        sh "docker exec nginx cat /etc/nginx/nginx.conf | grep 'server spring-'"
 
-            echo "Successfully switched from ${env.CURRENT} to ${env.NEXT}"
-        }
-    }
-}
+                        echo "Successfully switched from ${env.CURRENT} to ${env.NEXT}"
+                    }
+                }
+            }
 
         stage('Cleanup Old Version') {
             steps {
