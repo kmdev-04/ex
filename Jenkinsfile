@@ -26,36 +26,45 @@ pipeline {
             }
         }
 
-        stage('Detect Active Version') {
-            steps {
-                script {
-                    def currentConf = sh(
-                        script: "docker exec nginx cat /etc/nginx/nginx.conf",
-                        returnStdout: true
-                    ).trim()
+       stage('Detect Active Version') {
+           steps {
+               script {
+                   def currentConf = sh(
+                       script: "docker exec nginx cat /etc/nginx/nginx.conf",
+                       returnStdout: true
+                   ).trim()
 
-                    echo "Current nginx config: ${currentConf}"
+                   echo "Current nginx config: ${currentConf}"
 
-                    if (currentConf.contains("spring-blue:8080")) {
-                        env.CURRENT = "blue"
-                        env.NEXT = "green"
-                        env.NEXT_PORT = "8082"
-                        env.NEXT_CONTAINER = "spring-green"
-                        env.CONF_TO_USE = GREEN_CONF
-                        echo "Detected blue is active, switching to green"
-                    } else {
-                        env.CURRENT = "green"
-                        env.NEXT = "blue"
-                        env.NEXT_PORT = "8081"
-                        env.NEXT_CONTAINER = "spring-blue"
-                        env.CONF_TO_USE = BLUE_CONF
-                        echo "Detected green is active, switching to blue"
-                    }
+                   // spring-blue 또는 spring-green을 확인
+                   if (currentConf.contains("spring-blue:8080")) {
+                       env.CURRENT = "blue"
+                       env.NEXT = "green"
+                       env.NEXT_PORT = "8082"
+                       env.NEXT_CONTAINER = "spring-green"
+                       env.CONF_TO_USE = GREEN_CONF
+                       echo "Detected blue is active, switching to green"
+                   } else if (currentConf.contains("spring-green:8080")) {
+                       env.CURRENT = "green"
+                       env.NEXT = "blue"
+                       env.NEXT_PORT = "8081"
+                       env.NEXT_CONTAINER = "spring-blue"
+                       env.CONF_TO_USE = BLUE_CONF
+                       echo "Detected green is active, switching to blue"
+                   } else {
+                       // 기본값 설정 (첫 배포 시)
+                       env.CURRENT = "none"
+                       env.NEXT = "blue"
+                       env.NEXT_PORT = "8081"
+                       env.NEXT_CONTAINER = "spring-blue"
+                       env.CONF_TO_USE = BLUE_CONF
+                       echo "No active version detected, starting with blue"
+                   }
 
-                    echo "Current: ${env.CURRENT}, Next: ${env.NEXT}, Container: ${env.NEXT_CONTAINER}"
-                }
-            }
-        }
+                   echo "Current: ${env.CURRENT}, Next: ${env.NEXT}, Container: ${env.NEXT_CONTAINER}"
+               }
+           }
+       }
 
         stage('Deploy NEXT') {
             steps {
